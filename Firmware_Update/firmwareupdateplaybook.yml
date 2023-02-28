@@ -1,0 +1,11 @@
+- name: Query HW VEndors
+  hosts: Dell 
+  gather_facts: no
+  vars:
+    ansible_user: "{{ duser }}" #insert whatever your user variable name is here
+    ansible_password: "{{ dpwd }}" #insert whatever your password variable name is here
+  vars_files: creds.yml #insert whatever the encrypted variable file is here
+  roles:
+    - roles/Racreset
+    - roles/Racadm
+    - roles/RacStatus

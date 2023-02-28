@@ -1,0 +1,82 @@
+- name: Query HW VEndors
+  hosts: all
+  connection: local
+  gather_facts: no
+  vars_files: #insert your encrypted password file here if not using certificate based auth
+  roles:
+    - role: Vendor Disc
+
+- name: Create Ansible Groups based on Vendor
+  hosts: all
+  connection: local
+  gather_facts: no
+  tasks:
+    - changed_when: false
+      group_by: 
+        key: "{{ OEM }}"
+
+- name: Query Dell Server Generations
+  hosts: Dell
+  connection: local
+  gather_facts: no
+  vars_files: #insert your encrypted password file here if not using certificate based auth
+  roles:
+    - role: DellGenSet
+      vars:
+        Redfishuri: {'Hpe': 'Systems/1', 'Hp: 'Systems/1', 'Dell': 'Managers/iDRAC.Embedded.1'}
+
+
+- name: Create Ansible Groups based on Generation
+  hosts: all
+  connection: local
+  gather_facts: no
+  tasks:
+    - changed_when: false
+      group_by: 
+        key: "{{ Gen }}"
+
+
+- name: Query Optimal Settings from 13G Dell servers
+  hosts: 13G
+  gather_facts: no
+  vars_files: #insert your encrypted password file here if not using certificate based auth
+  vars:
+    ansible_user: "{{ huser }}" #or whatever varible you have used for the user in the vars_files
+    ansible_password: "{{ hpwd }}" #or whatever varible you have used for the password in the vars_files
+  roles:
+    - role: idrac8powerdata
+
+- name: Query Optimal Settings from Dell servers less than 13G
+  hosts: Dell:!13G
+  connection: local
+  gather_facts: no
+  vars_files: #insert your encrypted password file here if not using certificate based auth
+  roles:
+    - role: DellDetails
+      vars:
+        nam: BIOS Query #nam defines the names of the tasks within the roles as well as provides the data for any sort of data push later on
+        Redfishuri: {'Hpe': 'Systems/1/Bios/settings/', 'Hp': 'Systems/1/Bios/settings/', 'Dell': 'Managers/System.Embedded.1/Attributes/'}
+
+- name: Query Optimal Settings from Hpe servers
+  hosts: Hpe:Hp
+  connection: local
+  gather_facts: no
+  vars_files: #insert your encrypted password file here if not using certificate based auth
+  roles:
+    - role: HPEDetails
+      vars:
+        nam: BIOS Query #nam defines the names of the tasks within the roles as well as provides the data for any sort of data push later on
+        Redfishuri: {'Hpe': 'Systems/1/Bios/settings/', 'Hp': 'Systems/1/Bios/settings/', 'Dell': 'Managers/System.Embedded.1/Attributes/'}
+
+- name: Data Upload
+  hosts: Dell:Hpe:Hp
+  connection: local
+  gather_facts: no
+  vars_files: #insert your encrypted password file here if not using certificate based auth
+  roles:
+    - role: DataUpload
+      vars:
+        nam: PowerandTemp #nam defines the names of the tasks within the roles as well as provides the data for any sort of data push later on
+        SplunkURL: #insert the collector url here
+        SplunkAuth: #insert the auth token here
+        Sindex: #insert the index here

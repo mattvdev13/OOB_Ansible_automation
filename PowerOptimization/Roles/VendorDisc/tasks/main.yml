@@ -1,0 +1,28 @@
+- name: Query Redfish API base URI
+  changed_when: false
+  uri:
+    url: "https://{{ ansible_host }}/redfish/v1"
+    method: GET
+    status_code: 200,202
+    return_content: yes
+    force_basic_auth: no
+    validate_Certs: no
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    register: JOBOUT
+    retries: 1
+    delay: 5
+
+
+- name: Set Vendor fact
+  delegate_facts: true
+  changed_when: false
+  set_fact:
+    OEM: "{{ match[0] }}"
+  vars:
+    manufacturers: ["Hpe", "Hp", "Dell"]
+    OEMkeys: "{{ JOBOUT.json.Oem.keys()|list }}"
+    match: "{{ manufacturers| intersect (OEMkeys) }}"
+  failed_when: OEM is undefined or OEMkeys is undefined or match is undefined
+    

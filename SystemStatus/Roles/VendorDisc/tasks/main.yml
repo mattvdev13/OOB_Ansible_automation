@@ -1,0 +1,26 @@
+- name: Query Redfish API base URI
+  changed_when: false
+  uri:
+    url: "https://{{ ansible_host }}/redfish/v1/Systems?$expand=."
+    user: "{{ duser }}"
+    password: "{{ dpwd }}"
+    method: GET
+    status_code: 200,202
+    return_content: yes
+    force_basic_auth: yes
+    validate_Certs: no
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    register: JOBOUT
+    retries: 1
+    delay: 5
+
+
+- name: Set Vendor fact
+  debug:
+    msg: "{{ ansible_host }} - {{JOBOUT.results}}"
+
+#incomplete this section still needs debugging
+
+    

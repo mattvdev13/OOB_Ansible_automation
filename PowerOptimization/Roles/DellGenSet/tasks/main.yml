@@ -1,0 +1,28 @@
+- name: "Query Redfish API for {{ nam }}"
+  changed_when: false
+  uri:
+    url: "https://{{ ansible_host }}/redfish/v1/{{ Redfishuri[hostvars[ansible_host].OEM] }}"
+    user: "{{ huser }}"
+    password: "{{ hpwd }}"
+    method: GET
+    status_code: 200,202
+    return_content: yes
+    force_basic_auth: yes
+    validate_Certs: no
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    register: GenerationOutput
+    retries: 1
+    delay: 5
+
+
+- name: Set Generation fact
+  delegate_facts: true
+  changed_when: false
+  set_fact:
+    Gen: "{{ temp[0] }}"
+  vars:
+    temp: "{{ GenerationOutput.json.Model.split() }}"
+  failed_when: OEM is undefined or Gen is undefined
+    

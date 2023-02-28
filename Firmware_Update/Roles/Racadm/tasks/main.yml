@@ -1,0 +1,26 @@
+---
+  - name: Gather initial survey of JobQueue 
+    changed_when: false
+    raw: racadm jobqueue view
+    register: JobQinit
+
+  - name: Initiate Firmware Update
+    raw: racadm update -f {{ catalogname }} -e {{ fwshare }} -a FALSE -t HTTP
+    changed_when: false
+    register: RawOut
+    failed_when: RawOut.stdout[:7] != "RAC1118"
+
+  - name: set JobJID
+    set_fact:
+      JobID: "{{ temp[:16] }}"
+    vars:
+      temp: "{{ RawOut.stdout | regex_search('JID_.*') }}"
+
+  - name: Check no failure on Firmware Repo Download Job Status
+    raw: racadm jobqueue view -i {{ JobID }}
+    changed_when: false
+    register: FinalOut
+    until: FinalOut.stdout.find("Status=Downloading") == -1
+    failed_when: FinalOut.stdout.find("Status=Failed") != -1
+    retries: 50
+    delay: 2

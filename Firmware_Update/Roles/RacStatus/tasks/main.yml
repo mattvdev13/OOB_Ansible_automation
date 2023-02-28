@@ -1,0 +1,36 @@
+---
+  - name: Evaluate Firmware Downloads and Update status
+    block:
+      - name:  check if firmware is downloaded and scheduled
+        ignore_unreachable: yes #idrac will go down when idrac updates and become unreachable
+        raw: racadm jobqueue view
+        register: JobQ
+        changed_when: JobQ.stdout.count("Status=Scheduled") > JobQinit.stdout.count("Status=Scheduled") or JobQ.stdout.count("iDRAC") > JobQinit.stdout.count("iDRAC")
+        vars:
+          StdoutJoined: "{{ JobQ.stdout_lines | join }}"
+        until: (StdoutJoined.find('[JobID={{ JobID }}]Job Name=Repository UpdateStatus=Completed') != -1 or JobQ.stdout.count("Status=Scheduled") > JobQinit.stdout.count("Status=Scheduled")) and (JobQ.stdout.find("Status=New") == -1  and JobQ.stdout.find("Status=Downloading") == -1)
+        failed_when: JobQ.stdout.find("Status=New")== -1 and JobQ.stdout.find("Status=Downloading") == -1 and JobQ.stdout.count("iDRAC") > JobQinit.stdout.count("iDRAC")
+        retries: 120
+        delay: 30
+
+      - name: Fail when Unreachable
+        fail:
+          msg: "IDRAC is Updating on {{ ansible_host }}"
+        when: JobQ.unreachable is defined and JobQ.unreachable
+
+    rescue: 
+      - name: Pause to allow for completion
+        pause:
+          minutes: 5
+
+      - name: IDRAC Reboot
+        local_action:
+          module: wait_for
+            host: "{{ ansible_host }}"
+            port=22
+            delay=30
+            sleep=5
+
+      - name: Print the new IDRAV Version to output
+        debug:
+          msg: "{{ ansible_host }} - IDRAC was updated"

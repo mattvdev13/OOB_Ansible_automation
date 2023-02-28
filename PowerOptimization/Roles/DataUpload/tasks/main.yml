@@ -1,0 +1,24 @@
+- name: Push Server Fan settings Data to Splunk
+  changed_when: false
+  uri:
+    url: "{{ SplunkURL }}"
+    method: POST
+    status_code: 200,202
+    validate_Certs: no
+    headers:
+      Authorization: "{{ SplunkAuth }}"
+      Content-Type: "application/json"
+      Accept: "application/json"
+    body_format: json
+    body: {
+      "host": "{{ ansible_host }}",
+      "source": "Insert relevant data here",
+      "sourcetype": "Insert relevant data here",
+      "index": "{{ Sindex }}",
+      "event": {
+        "Vendor": "{{ OEM }}",
+        "OptimalFanSettings" : "{{ OptimalPowerSetting }}"
+      }
+    }
+    retries: 1
+    delay: 5

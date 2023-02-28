@@ -1,0 +1,23 @@
+- name: "Query Redfish API for {{ nam }}"
+  changed_when: false
+  uri:
+    url: "https://{{ ansible_host }}/redfish/v1/{{ Redfishuri[hostvars[ansible_host].OEM] }}"
+    user: "{{ huser }}"
+    password: "{{ hpwd }}"
+    method: GET
+    status_code: 200,202
+    return_content: yes
+    validate_Certs: no
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    register: JOBOUT
+    retries: 1
+    delay: 5
+
+
+- name: Validate Optimal Fan Setting
+  changed_when: false
+  set_fact:
+    OptimalPowerSetting: '{{ JOBOUT.json.Attributes["ThermalSettings.1.ThermalProfile"] == "Minimum Power" }}'
+    

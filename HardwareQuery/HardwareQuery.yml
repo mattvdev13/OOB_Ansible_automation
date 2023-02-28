@@ -1,0 +1,55 @@
+- name: Get System Gather facts
+  hosts: localhost
+  
+
+- name: Gather Info via redfish
+  hosts: all
+  connection: local
+  gather_facts: True
+  vars_files: #insert your encrypted password file here if not using certificate based auth
+  roles:
+    - role: VendorDisc
+      tags: lite
+
+    - name: BasicD
+      role: BasicDetails
+      vars:
+        nam: Basic Details
+        Redfishuri: {'Hpe': 'Systems/1', 'Hp: 'Systems/1', 'Dell': 'Managers/iDRAC.Embedded.1'}
+        Topicuri: ideas-1212121-cudl.BasicDetailsQuery
+
+    - name: BIOS
+      role: BasicDetails
+      vars:
+        nam: BIOS
+        Redfishuri: {'Hpe': 'Systems/1/bios?$expand=.($levels=1)', 'Hp: 'Systems/1/bios', 'Dell': 'Systems/System.Embedded.1/Bios?expand=.($levels=1)'}
+        Topicuri: ideas-1212121-cudl.BIOSQuery
+      tags: lite
+
+    - name: Firmware
+      role: BasicDetails
+      vars:
+        nam: Firmware Query
+        Redfishuri: {'Hpe': 'UpdateService/FirmwareInventory?$expand=.($levels=1)', 'Hp: 'Systems/1/FirmwareInventory', 'Dell': 'UpdateService/FirmwareInventory?$expand=.($levels=1)'}
+        Topicuri: ideas-1212121-cudl.FirmwareQuery
+
+    - name: Memory
+      role: BasicDetails
+      vars:
+        nam: Memory Query
+        Redfishuri: {'Hpe': 'Systems/1/Memory?$expand=.($levels=1)', 'Hp: 'Systems/1/Memory', 'Dell': 'Systems/System.Embedded.1/Memory?$expand=.($levels=1)'}
+        Topicuri: ideas-1212121-cudl.MemoryQuery
+
+    - name: Processor
+      role: BasicDetails
+      vars:
+        nam: Processor Query
+        Redfishuri: {'Hpe': 'Systems/1/Processors?$expand=.($levels=1)', 'Hp: 'Systems/1/Processors/1', 'Dell': 'Systems/System.Embedded.1/Processors?$expand=.($levels=1)'}
+        Topicuri: ideas-1212121-cudl.ProcessorQuery
+
+    #- name: Storage
+    #  role: BasicDetails
+    #  vars:
+    #    nam: Storage Query
+    #    Redfishuri: {'Hpe': 'Systems/1/SmartStorage/ArrayControllers/0/DiskDrives?$expand=.($levels=1)', 'Hp: 'Systems/1/SmartStorage/ArrayControllers', 'Dell': 'Systems/System.Embedded.1/SimpleStorage?$expand=.($levels=1)'}
+    #    Topicuri: ideas-1212121-cudl.StorageQuery

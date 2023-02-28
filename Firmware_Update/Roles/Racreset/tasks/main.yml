@@ -1,0 +1,12 @@
+- name: Reset the IDRAC via Racadm Commands
+  raw: racadm reset
+  register: resetout
+  failed_when: resetout.stdout[:5] == "ERROR"
+
+- name: Wait for IDRAC to become available again
+  local_action:
+    module: wait_for  
+      host= "{{ anisble_host }}"
+      port=22
+      delay=30
+      sleep=5

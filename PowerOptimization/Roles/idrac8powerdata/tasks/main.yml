@@ -1,0 +1,14 @@
+---
+  - name: Get Dell 13G Thermal Settings
+    changed_when: false
+    raw: racadm get system.thermalsettings.ThermalProfile
+    register: JOBOUT
+
+    #0 = auto
+    #1 = Maximum Performance
+    #2 = minimum power
+
+  - name: Validate Optimal Fan Setting
+    changed_when: false
+    set_fact:
+      OptimalPowerSetting: '{{ JOBOUT.stdount.find("Minimum Power") != -1 }}'

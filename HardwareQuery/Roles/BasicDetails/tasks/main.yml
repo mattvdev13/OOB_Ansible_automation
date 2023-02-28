@@ -1,0 +1,69 @@
+- name: "Query Redfish API for {{ nam }}"
+  changed_when: false
+  uri:
+    url: "https://{{ ansible_host }}/redfish/v1/{{ Redfishuri[hostvars[ansible_host].OEM] }}"
+    user: "{{ huser }}"
+    password: "{{ hpwd }}"
+    method: GET
+    status_code: 200,202
+    return_content: yes
+    validate_certs: no
+    force_basic_auth: yes
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    register: JOBOUT
+    retries: 1
+    delay: 5
+
+
+# - name: Upload to Splunk
+#   changed_when: false
+#   uri:
+#     url: "https://xyz/services/collector/event "
+#     method: POST
+#     status_code: 200,202
+#     validate_certs: no
+#     headers:
+#       Authorization: "Splunk XYZ" #insert token here
+#       Content-Type: "application/json"
+#       Accept: "application/json"
+#     body_format: json
+#     body: {
+#       "time": "{{ hostvars['localhost']['ansible_date_time'].epoch }}",
+#       "host": "{{ ansible_host }}",
+#       "source": "{{ nam }}",
+#       "sourcetype": "Insert relevant data here",
+#       "index": "{{ OEM }}",
+#       "event": "{{ JOBOUT.json | to_json }}"
+#     }
+#     retries: 3
+#     delay: 5
+
+
+- name: Upload to Kafka
+  changed_when: false
+  uri:
+    url: "https://xyz/topics/{{ Topicuri }}"
+    method: POST
+    status_code: 200,202
+    validate_certs: no
+    client_cert: "/etc/../../xyz.cert" #insert relevant client cert file location here
+    client_key: "/etc/../../xyz.key" #insert relevant client key file location here
+    headers:
+      Content-Type: "application/vnd.kafka.json.v2+json"
+      Accept: "application/vnd.kafka.v2+json, application/vnd.kafka+json, application/json"
+    body_format: json
+    body: {
+      "records": [
+        {
+          "key": "{{ ansible_host }}",
+          "value": {
+            "vendor": "{{ OEM }}",
+            "event": "{{ JOBOUT.json }}"
+          }
+        }
+      ]
+    }
+    retries: 3
+    delay: 5

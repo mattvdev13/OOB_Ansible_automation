@@ -1,0 +1,17 @@
+[AllHost:children]
+HPE
+DELL
+
+#IP addresses should be for the idracs and ilos
+[HPE]
+#xx.xx.xxx.xxx
+#Add all appropriate IP addresses here
+
+[DELL]
+#Add all appropriate IP addresses here
+
+[DELL:vars]
+catalogname= "'XYZ.xml'"
+fwshare= 10.10.10.10/EXE/DELL/14G 
+sharetype= HTTP
+#all of this data should be reformated to the match whatever webserver and catalogname you are using.
